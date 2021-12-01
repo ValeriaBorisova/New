@@ -1,15 +1,13 @@
 import datetime
 
-
 from flask import Flask, request
 from flask import jsonify
 from flask_sqlalchemy import SQLAlchemy
 
-
-
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URL"] = "sqlite://taxi.sqlite"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://taxi.sqlite"
 db = SQLAlchemy(app)
+
 
 # db. create all()
 
@@ -18,11 +16,12 @@ class Drivers(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    car = db.Column(db.String(100),nullable=False)
+    car = db.Column(db.String(100), nullable=False)
 
     def __init__(self, name, car):
         self.name = name
         self.car = car
+
 
 class Clients(db.Model):
     _tablename_ = 'clients'
@@ -47,7 +46,6 @@ class Reservations(db.Model):
     date_created = db.Column(db.String(100), nullable=False)
     status = db.Column(db.String(100), nullable=False)
 
-
     def __init__(self, client_id, driver_id, address_from, address_to, date_created, status):
         self.client_id = client_id
         self.driver_id = driver_id
@@ -63,6 +61,7 @@ def get_driver_by_id(id):
     data = {"id": driver.id, "name": driver.name, "car": driver.car}
     return jsonify(data), 200
 
+
 @app.route('/drivers', methods=['POST'])
 def create_driver():
     json = request.get_json()
@@ -70,6 +69,7 @@ def create_driver():
     db.session.add(driver)
     db.session.commit()
     return f"Водитель добавлен с даннымиЖ id: {driver.id}", 201
+
 
 @app.route('/drivers/<int:id>', methods=['DELETE'])
 def delete_driver(id):
@@ -79,10 +79,10 @@ def delete_driver(id):
     return f"Удален  водитель с id : {id}", 204
 
 
-@app.route('/clients/<int: id>', methods=['GET'])
+@app.route('/clients/<int:id>', methods=['GET'])
 def get_client_by_id(id):
     client = Clients.query.filter_by(id=id).first_or_404()
-    data = {"id": client.id, "name": client.name,  "is_vip": client.is_vip, "order": client.order}
+    data = {"id": client.id, "name": client.name, "is_vip": client.is_vip, "order": client.order}
     return jsonify(data), 200
 
 
@@ -93,6 +93,7 @@ def delete_client(id):
     db.session.commit()
     return f"Удален клинт с id : {id}", 204
 
+
 @app.route('/clients', methods=['POST'])
 def create_client():
     json = request.get_json()
@@ -102,7 +103,7 @@ def create_client():
     return f"Клиент добавлен с данными id: {client.id}", 201
 
 
-@app.route('/reservations/<int: id>', methods=['GET'])
+@app.route('/reservations/<int:id>', methods=['GET'])
 def get_reservation_by_id(id):
     reservation = Reservations.query.filter_by(id=id).first_or_404()
     data = {"id": reservation.id,
@@ -122,13 +123,13 @@ def create_reservation():
     driver_id = json.get('driver_id')
     client = Clients.query.filter_by(id=client_id).first()
     driver = Drivers.query.filter_by(id=driver_id).first()
-    if client is not None and driver is not None :
+    if client is not None and driver is not None:
         reservation = Reservations(address_from=json.get('address_from'),
-                               address_to=json.get('address_to'),
-                               client_id=json.get('client_id'),
-                               driver_id=json.get('driver_id'),
-                               date_created=datetime.datetime.now(),
-                               status='not_accepted')
+                                   address_to=json.get('address_to'),
+                                   client_id=json.get('client_id'),
+                                   driver_id=json.get('driver_id'),
+                                   date_created=datetime.datetime.now(),
+                                   status='not_accepted')
         db.session.add(reservation)
         db.session.commit()
         return f"Заказ добавлен с данными id: {reservation.id}", 201
@@ -139,4 +140,3 @@ def create_reservation():
 @app.route('/reservatons/<id>', methods=['PUT'])
 def update_reservation(reservation_id):
     pass
-
